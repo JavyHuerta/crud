@@ -1,0 +1,836 @@
+openapi: 3.0.3
+info:
+  title: Spring Boot CRUD Example - OpenAPI 3.0
+  description: |-
+    This is a sample CRUD based on the OpenAPI 3.0 specification.
+  termsOfService: http://swagger.io/terms/
+  contact:
+    name: Joas Dev
+    url: https://www.youtube.com/@JoasDev
+    email: joas.dev@gmail.com
+  license:
+    name: GPL 3.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+externalDocs:
+  description: Find out more about Swagger
+  url: http://localhost:8080/h2-console
+servers:
+  - url: http://localhost:8080
+tags:
+  - name: Authors
+    description: Everything about your Authors
+  - name: Books
+    description: Everything about your Books
+
+
+paths:
+  /authors:
+    post:
+      tags:
+        - Authors
+      operationId: registerAuthor
+      requestBody:
+        description: Author registration
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterAuthor'
+      responses:
+        '201':
+          description: Resource created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid input parameters"
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorNotFound'
+
+  /authors/pages:
+    get:
+      tags:
+        - Authors
+      operationId: getAllAuthorsToPage
+      #x-spring-paginated: true
+      parameters:
+        - $ref: '#/components/parameters/QParam'
+        - $ref: '#/components/parameters/BirthdateParam'
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/AuthorIdSortParam'
+
+      responses:
+        '200':
+          description: Resource found successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorPage'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Parámetros de entrada inválidos"
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorNotFound'
+
+  /authors/{authorId}:
+    get:
+      tags:
+        - Authors
+      operationId: getAuthorById
+      parameters:
+        - name: authorId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+            example: 1
+
+      responses:
+        '200':
+          description: Resource found successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorResponse'
+
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Parámetros de entrada inválidos"
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorNotFound'
+
+    put:
+      tags:
+        - Authors
+      operationId: updateAuthor
+      parameters:
+        - name: authorId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+            example: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAuthor'
+      responses:
+        '200':
+          description: Resource successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateAuthorResponse'
+
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Parámetros de entrada inválidos"
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorNotFound'
+
+    delete:
+      tags:
+        - Authors
+      operationId: deleteAuthor
+      parameters:
+        - name: authorId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+            example: 1
+      responses:
+        '204':
+          description: Author successfully removed
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Parámetros de entrada inválidos"
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorNotFound'
+
+
+  /authors/list:
+    get:
+      tags:
+        - Authors
+      operationId: getAuthorToList
+      parameters:
+        - $ref: '#/components/parameters/QParam'
+        - $ref: '#/components/parameters/BirthdateParam'
+
+      responses:
+        '200':
+          description: Resource found successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuthorResponse'
+
+
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Parámetros de entrada inválidos"
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorNotFound'
+
+  /books:
+    post:
+      tags:
+        - Books
+      operationId: registerBook
+      requestBody:
+        description: Book registry
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterBook'
+      responses:
+        '201':
+          description: Resource created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookResponse'
+
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Parámetros de entrada inválidos"
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorNotFound'
+
+  /books/pages:
+    get:
+      tags:
+        - Books
+      operationId: getAllBooksToPage
+      parameters:
+        - $ref: '#/components/parameters/QParam'
+        - $ref: '#/components/parameters/PublicationDateParam'
+        - $ref: '#/components/parameters/OnlineAvailabilityParam'
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/BookIdSortParam'
+
+      responses:
+        '200':
+          description: Resource found successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookPage'
+
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Parámetros de entrada inválidos"
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorNotFound'
+
+
+  /books/{bookId}:
+    get:
+      tags:
+        - Books
+      operationId: getBookById
+      parameters:
+        - name: bookId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+            example: 1
+
+      responses:
+        '200':
+          description: Resource found successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookResponse'
+
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Parámetros de entrada inválidos"
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorNotFound'
+
+    put:
+      tags:
+        - Books
+      operationId: updateBook
+      description: Book update
+      parameters:
+        - name: bookId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+            example: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBook'
+
+      responses:
+        '200':
+          description: Resource successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookResponse'
+
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Parámetros de entrada inválidos"
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorNotFound'
+
+    delete:
+      tags:
+        - Books
+      operationId: deleteBook
+      description: Book delete
+      parameters:
+        - name: bookId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+            example: 1
+      responses:
+        '204':
+          description: Resource successfully deleted
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Parámetros de entrada inválidos"
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorNotFound'
+
+
+  /books/list:
+    get:
+      tags:
+        - Books
+      operationId: getBooksToList
+      parameters:
+        - $ref: '#/components/parameters/QParam'
+        - $ref: '#/components/parameters/PublicationDateParam'
+        - $ref: '#/components/parameters/OnlineAvailabilityParam'
+        - $ref: '#/components/parameters/BookIdSortParam'
+      responses:
+        '200':
+          description: Resource found successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BookResponse'
+
+
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Parámetros de entrada inválidos"
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorNotFound'
+
+components:
+  parameters:
+    QParam:
+      name: q
+      in: query
+      required: false
+      schema:
+        type: string
+    BirthdateParam:
+      name: birthdate
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date
+        example: 03/11/2024
+    PageParam:
+      name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        format: int32
+        minimum: 0
+        default: 0
+        example: 0
+    SizeParam:
+      name: size
+      in: query
+      required: false
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        default: 10
+        example: 10
+
+
+
+    AuthorIdSortParam:
+      name: sort
+      in: query
+      required: false
+      schema:
+        type: string
+        default:  "authorId,asc"
+        example: "authorId,asc"
+
+    PublicationDateParam:
+      name: publicationDate
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date
+        example: 2024/01/01
+
+    OnlineAvailabilityParam:
+      name: onlineAvailability
+      in: query
+      required: false
+      schema:
+        type: boolean
+        example: true
+
+    BookIdSortParam:
+      name: sort
+      in: query
+      required: false
+      schema:
+        type: string
+        default: "bookId,asc,authorId,asc"
+        example: "bookId,asc,authorId,asc"
+
+  schemas:
+    RegisterAuthor:
+      type: object
+      properties:
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 45
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 45
+        birthdate:
+          description: format dd/MM/yyyy
+          type: string
+          pattern: "^([0-2][0-9]|3[0-1])/([0][1-9]|1[0-2])/\\d{4}$" #"[0-9]{2}/[0-9]{2}/[0-9]{4}"
+          example: 03/11/2024
+      required:
+        - firstName
+        - lastName
+        - birthdate
+
+    AuthorItem:
+      type: object
+      properties:
+        authorId:
+          type: integer
+          format: int32
+        firstName:
+          type: string
+        lastName:
+          type: string
+        birthdate:
+          type: string
+          format: "^\\d{4}/(0[1-9]|1[012])/(0[1-9]|[12][0-9]|3[01])$"
+          example: 2024/01/01
+
+    Sort:
+      type: object
+      properties:
+        sorted:
+          type: boolean
+        unsorted:
+          type: boolean
+        empty:
+          type: boolean
+
+    Pageable:
+      type: object
+      properties:
+        pageNumber:
+          type: integer
+          format: int32
+        pageSize:
+          type: integer
+          format: int32
+        sort:
+          $ref: '#/components/schemas/Sort'
+        offset:
+          type: integer
+          format: int32
+        paged:
+          type: boolean
+        unpaged:
+          type: boolean
+
+    AuthorPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthorItem'
+        pageable:
+          $ref: '#/components/schemas/Pageable'
+        totalPages:
+          type: integer
+          format: int32
+        totalElements:
+          type: integer
+          format: int64
+        last:
+          type: boolean
+        first:
+          type: boolean
+        size:
+          type: integer
+          format: int32
+        number:
+          type: integer
+          format: int32
+        sort:
+          $ref: '#/components/schemas/Sort'
+
+        numberOfElements:
+          type: integer
+          format: int32
+        empty:
+          type: boolean
+
+    AuthorResponse:
+      type: object
+      properties:
+        authorId:
+          type: integer
+          format: int32
+          example: 1
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 45
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 45
+        fullName:
+          type: string
+        birthdate:
+          description: format yyyy/MM/dd
+          type: string
+          format: "^\\d{4}/(0[1-9]|1[012])/(0[1-9]|[12][0-9]|3[01])$"
+          example: 2024/11/01
+
+    RegisterBook:
+      type: object
+      properties:
+        title:
+          type: string
+        publicationDate:
+          description: format dd/MM/yyyy
+          type: string
+          pattern: "^([0-2][0-9]|3[0-1])/([0][1-9]|1[0-2])/\\d{4}$"
+          example: 03/11/2024
+        onlineAvailability:
+          type: boolean
+        authors:
+          type: array
+          items:
+            type: integer
+          example: [1,2,3]
+      required:
+        - title
+        - publicationDate
+        - onlineAvailability
+        - authors
+
+    UpdateBook:
+      type: object
+      properties:
+        title:
+          type: string
+        publicationDate:
+          description: format dd/MM/yyyy
+          type: string
+          pattern: "^([0-2][0-9]|3[0-1])/([0][1-9]|1[0-2])/\\d{4}$"
+          example: 03/11/2024
+        onlineAvailability:
+          type: boolean
+        authors:
+          type: array
+          items:
+            type: integer
+          example: [1,2,3]
+      required:
+        - title
+        - publicationDate
+        - onlineAvailability
+        - authors
+
+    UpdateAuthor:
+      type: object
+      properties:
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 45
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 45
+        birthdate:
+          description: format dd/MM/yyyy
+          type: string
+          pattern: "^([0-2][0-9]|3[0-1])/([0][1-9]|1[0-2])/\\d{4}$"
+          example: 03/11/2024
+      required:
+        - firstName
+        - lastName
+        - birthdate
+
+    UpdateAuthorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        content:
+          $ref: "#/components/schemas/AuthorResponse"
+
+
+    BookResponse:
+      type: object
+      properties:
+        bookId:
+          type: integer
+          format: int32
+        title:
+          type: string
+        publicationDate:
+          description: format dd/MM/yyyy
+          type: string
+          format: "^\\d{4}/(0[1-9]|1[012])/(0[1-9]|[12][0-9]|3[01])$"
+          example: 2024/01/01
+        onlineAvailability:
+          type: boolean
+        authors:
+          type: array
+          items:
+            type: string
+            example: ["Cesar Vallejo", "Maria Arguedas"]
+
+    BookItem:
+      type: object
+      properties:
+        bookId:
+          type: integer
+          format: int32
+          example: 1
+        title:
+          type: string
+        publicationDate:
+          description: format dd/MM/yyyy
+          type: string
+          format: "^\\d{4}/(0[1-9]|1[012])/(0[1-9]|[12][0-9]|3[01])$"
+          example: 2024/01/01
+        onlineAvailability:
+          type: boolean
+        authors:
+          type: array
+          items:
+            type: string
+            example: ["Cesar Vallejo", "Maria Arguedas"]
+
+    BookPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/BookItem'
+        pageable:
+          $ref: '#/components/schemas/Pageable'
+        totalPages:
+          type: integer
+          format: int32
+        totalElements:
+          type: integer
+          format: int64
+        last:
+          type: boolean
+        first:
+          type: boolean
+        size:
+          type: integer
+          format: int32
+        number:
+          type: integer
+          format: int32
+        sort:
+          $ref: '#/components/schemas/Sort'
+        numberOfElements:
+          type: integer
+          format: int32
+        empty:
+          type: boolean
+
+    ErrorNotFound:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string

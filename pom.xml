@@ -13,22 +13,28 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>crud</name>
 	<description>Ejemplo de crud</description>
-	<url/>
-	<licenses>
-		<license/>
-	</licenses>
-	<developers>
-		<developer/>
-	</developers>
-	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
-	</scm>
+
+
+
 	<properties>
 		<java.version>17</java.version>
+		<mapstruct.version>1.5.5.Final</mapstruct.version>
+		<jacoco.version>0.8.12</jacoco.version>
+		<openapi.generator.version>7.9.0</openapi.generator.version>
+		<org.checkstyle.google.suppressionfilter.config>${basedir}/config/checkstyle/checkstyle-suppressions.xml</org.checkstyle.google.suppressionfilter.config>
+		<spotless.version>2.43.0</spotless.version>
+		<sonar.coverage.exclusions>
+			**/com/javyhuerta/crud/configuration/**,
+			**/com/javyhuerta/crud/mapper/**,
+			**/com/javyhuerta/crud/model/**,
+			**/com/javyhuerta/crud/SpringBootCrudExampleApplication.java,
+			**/com/javyhuerta/crud/util/DateTimeUtil.java,
+			**/com/javyhuerta/crud/util/PageUtil.java
+		</sonar.coverage.exclusions>
+
 	</properties>
+
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -57,6 +63,7 @@
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
+			<scope>provided</scope>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
@@ -64,6 +71,56 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.mapstruct</groupId>
+			<artifactId>mapstruct</artifactId>
+			<version>${mapstruct.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jacoco</groupId>
+			<artifactId>jacoco-maven-plugin</artifactId>
+			<version>${jacoco.version}</version>
+		</dependency>
+		<!-- OpenAPI Generator -->
+		<dependency>
+			<groupId>org.openapitools</groupId>
+			<artifactId>openapi-generator</artifactId>
+			<version>${openapi.generator.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-simple</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.openapitools</groupId>
+			<artifactId>jackson-databind-nullable</artifactId>
+			<version>0.2.6</version>
+		</dependency>
+
+
+		<!-- Checkstyle -->
+		<dependency>
+			<groupId>com.puppycrawl.tools</groupId>
+			<artifactId>checkstyle</artifactId>
+			<version>10.20.1</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.google.googlejavaformat</groupId>
+			<artifactId>google-java-format</artifactId>
+			<version>1.25.0</version>
+		</dependency>
+
+		<!-- Spotless -->
+		<dependency>
+			<groupId>com.diffplug.spotless</groupId>
+			<artifactId>spotless-maven-plugin</artifactId>
+			<version>${spotless.version}</version>
+		</dependency>
+
+
 	</dependencies>
 
 	<build>
@@ -92,7 +149,199 @@
 					</excludes>
 				</configuration>
 			</plugin>
+
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco.version}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+						<!--
+                        <configuration>
+                            <propertyName>jacoco-agent</propertyName>
+                            <destFile>${project.build.directory}/jacoco.exec</destFile>
+                        </configuration>-->
+
+					</execution>
+					<execution>
+						<id>report</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+						<configuration>
+							<excludes>
+								<!-- Excludes all classes from the model package -->
+								<exclude>com/javyhuerta/crud/model/**</exclude>
+								<exclude>com/javyhuerta/crud/mapper/**</exclude>
+								<exclude>com/javyhuerta/crud/configuration/**</exclude>
+								<!-- Excludes specific classes -->
+								<exclude>com/javyhuerta/crud/SpringBootCrudExampleApplication*</exclude>
+								<exclude>com/javyhuerta/crud/util/DateTimeUtil*</exclude>
+								<exclude>com/javyhuerta/crud/util/PageUtil*</exclude>
+							</excludes>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.openapitools</groupId>
+				<artifactId>openapi-generator-maven-plugin</artifactId>
+				<!-- RELEASE_VERSION -->
+				<version>${openapi.generator.version}</version>
+				<!-- /RELEASE_VERSION -->
+				<executions>
+					<execution>
+						<id>generate-crud</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<verbose>false</verbose>
+							<inputSpec>${project.basedir}/src/main/resources/openapi/spring-boot-crud-example.yaml</inputSpec>
+							<ignoreFileOverride>${project.basedir}/src/main/resources/openapi/.openapi-generator-ignore</ignoreFileOverride>
+							<generatorName>spring</generatorName>
+							<modelNameSuffix>Dto</modelNameSuffix>
+							<skipOverwrite>true</skipOverwrite>
+							<apiPackage>com.javyhuerta.crud.web.api</apiPackage>
+							<modelPackage>com.javyhuerta.crud.model.dto</modelPackage>
+							<output>${project.build.directory}/generated-sources/openapi</output>
+							<skipOperationExample>true</skipOperationExample>
+							<!--<globalProperties>
+                                <useTags>true</useTags>
+                                <modelDocs>false</modelDocs>
+                                <apis></apis>
+                                <models></models>
+                            </globalProperties>-->
+							<!-- generate ApiUtil -->
+							<generateSupportingFiles>false</generateSupportingFiles>
+							<!--<supportingFilesToGenerate>
+								ApiUtil.java
+							</supportingFilesToGenerate>-->
+
+							<configOptions>
+								<dateLibrary>java8-localdatetime</dateLibrary>
+								<sourceFolder>src/main/java</sourceFolder>
+								<interfaceOnly>true</interfaceOnly>
+								<!--<additionalModelTypeAnnotations>
+                                 @lombok.NoArgsConstructor;@lombok.AllArgsConstructor;@lombok.Builder
+                                </additionalModelTypeAnnotations>-->
+								<generateApiDocumentation>false</generateApiDocumentation>
+								<useSpringBoot3>true</useSpringBoot3>
+								<!--<annotationLibrary>none</annotationLibrary>-->
+								<skipDefaultInterface>true</skipDefaultInterface>
+								<documentationProvider>none</documentationProvider>
+								<!--<requestMappingMode>controller</requestMappingMode>-->
+								<library>spring-boot</library>
+								<basePackage>com.javyhuerta.crud</basePackage>
+								<configPackage>com.javyhuerta.crud</configPackage>
+							</configOptions>
+
+							<typeMappings>
+								<typeMapping>AuthorPage=Page&lt;AuthorItemDto&gt;</typeMapping>
+								<typeMapping>BookPage=Page&lt;BookItemDto&gt;</typeMapping>
+							</typeMappings>
+							<importMappings>
+								<importMapping>Page&lt;AuthorItemDto&gt;=org.springframework.data.domain.Page;&#10;import com.javyhuerta.crud.model.dto.AuthorItemDto</importMapping>
+								<importMapping>Page&lt;BookItemDto&gt;=org.springframework.data.domain.Page;&#10;import com.javyhuerta.crud.model.dto.BookItemDto</importMapping>
+							</importMappings>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>3.6.0</version>
+				<configuration>
+					<configLocation>google_checks.xml</configLocation>
+					<suppressionsLocation>${org.checkstyle.google.suppressionfilter.config}</suppressionsLocation>
+					<!--<encoding>UTF-8</encoding>-->
+					<consoleOutput>true</consoleOutput>
+					<failsOnError>true</failsOnError>
+					<linkXRef>false</linkXRef>
+					<checkstyleRulesHeader>
+						<![CDATA[
+								<!DOCTYPE module PUBLIC
+								  "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+								  "https://checkstyle.org/dtds/configuration_1_3.dtd">
+								]]>
+					</checkstyleRulesHeader>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>com.diffplug.spotless</groupId>
+				<artifactId>spotless-maven-plugin</artifactId>
+				<version>${spotless.version}</version>
+				<executions>
+					<execution>
+						<!--<id>auto-style</id>-->
+						<goals>
+							<goal>apply</goal>
+							<!--<goal>check</goal>-->
+						</goals>
+						<!--<phase>compile</phase>-->
+						<!--<phase>verify</phase>-->
+					</execution>
+				</executions>
+				<configuration>
+					<java>
+						<includes>
+							<include>src/main/java/**/*.java</include>
+							<include>src/test/java/**/*.java</include>
+						</includes>
+						<!--<excludes>
+                            <exclude>src/test/java/**/*.java</exclude>
+                            <exclude>**/target/generated-sources/**</exclude>
+                        </excludes>-->
+						<eclipse>
+							<file>${project.basedir}/config/ide/eclipse/eclipse-google-checkstyle-formatter.xml</file>
+						</eclipse>
+						<importOrder>
+							<file>${project.basedir}/config/ide/eclipse/eclipse-google-checkstyle-organize-imports.importorder</file>
+						</importOrder>
+						<googleJavaFormat>
+							<!--<version>1.17.0</version>-->		<!-- https://github.com/diffplug/spotless/blob/main/lib/src/main/java/com/diffplug/spotless/java/GoogleJavaFormatStep.java -->
+							<version>1.24.0</version>                      <!-- optional, 1.8 is the minimum supported version for Java 11 -->
+							<style>GOOGLE</style>                       <!-- or AOSP (optional) -->
+							<reflowLongStrings>true</reflowLongStrings> <!-- optional -->
+							<formatJavadoc>false</formatJavadoc>        <!-- optional -->
+							<!-- optional: custom group artifact (you probably don't need this) -->
+							<groupArtifact>com.google.googlejavaformat:google-java-format</groupArtifact>
+						</googleJavaFormat>
+						<removeUnusedImports />
+					</java>
+				</configuration>
+
+			</plugin>
+
+
 		</plugins>
+
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<excludes>
+					<exclude>openapi/**</exclude>
+				</excludes>
+			</resource>
+		</resources>
+
 	</build>
 
 </project>
